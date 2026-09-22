@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v4/v5 安装包定义（WiX v3 语法不兼容，必须用 wix build，不是 candle/light）。
+
+  三个必须写对的地方：
+
+  1. UpgradeCode 一旦发布就**永远不能改**。MSI 靠它判断「这个包是不是同一个产品的
+     新版本」。改了它，用户装新版会变成并排安装两个，卸载也清不干净。
+     下面这串是占位 GUID，请在首次发布前生成一个真正随机的并写死：
+         uuidgen  /  [guid]::NewGuid()
+
+  2. Scope="perUser"：装到 %LocalAppData%\Programs，**不需要管理员**。
+     游戏翻译工具没必要提权，而且提权会让 TCC 之外的辅助功能/输入钩子更难拿。
+     要改成全机安装就把 Scope 换掉，同时改 Directory 为 ProgramFiles64Folder。
+
+  3. **MSI 与应用自更新天然冲突**。Windows Installer 按组件引用计数管理文件，
+     应用自己去替换已安装文件会让账本失真，下次升级或卸载可能失败。
+     正确做法是让应用自更新时下载新 MSI 再跑：
+         msiexec /i <new>.msi /qn /norestart
+     不要用「下载 exe 覆盖自身文件」那套。
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="@APP_NAME@"
+           Manufacturer="@APP_MAINTAINER@"
+           Version="@APP_VERSION@"
+           UpgradeCode="11111111-2222-3333-4444-555555555555"
+           Scope="perUser"
+           Compressed="yes">
+
+    <!-- 旧版本自动升级移除；降级安装直接拒绝并给出提示 -->
+    <MajorUpgrade DowngradeErrorMessage="已安装更高版本的 @APP_NAME@。请先卸载它，或安装不低于当前版本的更新。" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- 用内置的最小 UI。需要 -ext WixToolset.UI.wixext -->
+    <ui:WixUI Id="WixUI_Minimal" />
+
+    <!-- 许可：GPL-3.0 要求在分发时随附许可全文 -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <!-- 控制面板「程序和功能」里显示的图标（需要 .ico，非 .png） -->
+    <Icon Id="AppIcon" SourceFile="AppIcon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="Programs">
+        <Directory Id="APPDIR" Name="@APP_NAME@" />
+      </Directory>
+    </StandardDirectory>
+
+    <!--
+      载荷收割：Windows 侧的载荷是 jpackage 的 app-image
+      （含自带的 JRE、原生启动器 @APP_SLUG@.exe、以及 JNI 的 .dll）。
+      wix build 时用 -bindpath payload=<目录> 把路径传进来。
+    -->
+    <ComponentGroup Id="AppFiles" Directory="APPDIR">
+      <Files Include="!(bindpath.payload)\**" />
+    </ComponentGroup>
+
+    <!-- 开始菜单快捷方式 -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuDir" Name="@APP_NAME@" />
+    </StandardDirectory>
+
+    <Component Id="StartMenuShortcut" Directory="AppMenuDir" Guid="*">
+      <Shortcut Id="AppShortcut"
+                Name="@APP_NAME@"
+                Description="@APP_SUMMARY@"
+                Target="[APPDIR]@APP_SLUG@.exe"
+                WorkingDirectory="APPDIR" />
+      <RemoveFolder Id="RemoveAppMenuDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\@APP_MAINTAINER@\@APP_SLUG@"
+                     Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <!-- 桌面快捷方式（可选，默认不建；要建就把下面这块放开） -->
+    <!--
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="*">
+        <Shortcut Id="DesktopShortcutLink" Name="@APP_NAME@"
+                  Target="[APPDIR]@APP_SLUG@.exe" WorkingDirectory="APPDIR" />
+        <RegistryValue Root="HKCU" Key="Software\@APP_MAINTAINER@\@APP_SLUG@"
+                       Name="desktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+    -->
+
+    <Feature Id="Main" Title="@APP_NAME@" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+</Wix>
