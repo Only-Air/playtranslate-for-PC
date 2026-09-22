@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=@APP_NAME@
+GenericName=Game screen translator
+Comment=@APP_SUMMARY@
+Exec=@APP_SLUG@ %u
+TryExec=@APP_SLUG@
+Icon=@APP_ID@
+Terminal=false
+Categories=Utility;Education;Game;
+Keywords=translate;translation;OCR;game;Japanese;dictionary;
+StartupNotify=true
+StartupWMClass=@APP_ID@
+# 叠字层（always-on-top、点击穿透）需要合成器配合；这些提示让
+# KWin/Mutter 不要给主窗口加阴影或吸附——托盘/叠字窗口由应用自己管。
+X-GNOME-UsesNotifications=true
+X-GNOME-SingleWindow=false
