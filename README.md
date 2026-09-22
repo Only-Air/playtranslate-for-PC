@@ -2,9 +2,9 @@
 
 A real-time screen translation app for PC, built for both language learners and people who just want to play. Windows, macOS, and Linux.
 
-**This is a fork of [PlayTranslate](https://github.com/dominostars/playtranslate), it is at the design stage, and it is not being maintained.** Nothing here builds yet — no releases, no installers. What exists is a porting design. If you want a working app today, go get [the Android original](https://github.com/dominostars/playtranslate).
+**This is a fork of [PlayTranslate](https://github.com/dominostars/playtranslate), it is at the design stage, and it is not being maintained.** What is here is the porting design and the packaging setup for all five release formats. The PC application itself is not written yet — if you want a working app today, get [the Android original](https://github.com/dominostars/playtranslate).
 
-**[Read the porting design →](PORTING.md)**
+**[Read the porting design →](PORTING.md)** · **[Packaging →](packaging/README.md)**
 
 ## What this is
 
@@ -16,7 +16,9 @@ The short version: about a quarter of the Kotlin is pure JVM with no Android in 
 
 ## Status
 
-Design stage. Nothing builds. No releases, and no timeline I am committing to.
+Design stage. The Android source is here untouched; the PC port is designed but not written, and I am not committing to a timeline.
+
+Packaging, though, is set up and testable today: Windows **MSI**, macOS **DMG**, and Linux **deb / rpm / Flatpak**, plus the icon generator and the release manifest. See [`packaging/README.md`](packaging/README.md) for the build commands and [`packaging/RELEASING.md`](packaging/RELEASING.md) for how to cut a release. None of it produces a usable package until there is an application to put in one.
 
 **I do not plan to maintain this.** It is a fork I made to work out how the port would actually go — what survives contact with a desktop, what has to be rewritten, and where the platform differences bite. The design doc is the deliverable. If you want to take it further, take it; the license already says you can.
 
@@ -81,7 +83,9 @@ If you are on GNOME Wayland, no ordinary app can draw over your game — GNOME d
 - **The drag-to-look-up gesture**, and the icon's hold and tap gestures with it.
 - **Pointing the camera at your screen.** Just capture the screen.
 
-## How it will install
+## How it installs
+
+Five formats, one build each. [`packaging/README.md`](packaging/README.md) has the commands, and marks which of them have actually been built and tested on what.
 
 | Platform | Format | What to know |
 |---|---|---|
