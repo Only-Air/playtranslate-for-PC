@@ -1,68 +1,116 @@
-# PlayTranslate
+# PlayTranslate for PC
 
-A real-time game translation Android app, built for both language learners and people who just want to play. Supports 23 game languages and 59 user languages!
+A real-time screen translation app for PC, built for both language learners and people who just want to play. Windows, macOS, and Linux.
 
-[Download the latest release by clicking here](../../releases/latest)
+**This is a fork of [PlayTranslate](https://github.com/dominostars/playtranslate), it is at the design stage, and it is not being maintained.** Nothing here builds yet — no releases, no installers. What exists is a porting design. If you want a working app today, go get [the Android original](https://github.com/dominostars/playtranslate).
 
-To report issues, receive support, or make requests, please join the [Discord server](https://discord.gg/DVCj6p7MUC)
+**[Read the porting design →](PORTING.md)**
 
-[PlayTranslate with Persona 3 Reload](https://github.com/user-attachments/assets/e89c2c6e-92f3-41d2-8e51-5483beaca612)
+## What this is
 
-## Features
+PlayTranslate reads the text off your game screen, looks up the words, translates them, and paints the result back over the original. On Android it does that with a floating overlay you drag around with your finger.
 
-- **One-tap Translation**: Capture the game screen and translate Japanese text with one tap
-- **Auto Translation Mode**: Automatically translates as dialogue changes, no tapping required
-- **Word lookup**: Hover the floating lens over any word for immediate dictionary definitionss
-- **Offline**: OCR and dictionary lookups work without an internet connection, with optional offline translation models
-- **Furigana/Pinyin Mode**: Show reading hints above characters in real time
-- **Hotkeys**: Configure a physical key to hold-to-preview translations or furigana, great for handhelds with dedicated buttons
-- **Dual Screen & Split Screen**: Works across both screens on dual-display devices like the Ayn Thor, or in Android split-screen alongside windowed games
-- **Capture regions**: Crop to just the dialogue box, subtitles, or any custom area
-- **Text-to-speech**: Hear text spoken aloud. Change the default voice in settings
-- **Anki export**: Save sentences to AnkiDroid with the original text, translation, word list, target words, text-to-speech, and a screenshot. Even record and include game audio! Card type selection with presets for popular decks.
-- **Yomitan integration**: Yomitan dictionaries seamlessly integrate, including pitch accent, frequency chips, kanji enrichment, and merged term definitions everywhere (incl. Anki). Look for deeper integration in the future
-- **Camera translation**: point your camera at text in the world and read it live, or freeze a frame to tap words and look them up.
-- **Text History**: keep a record of captured sentences. Off by default.
+On a PC there is no finger. There is a mouse, a keyboard, and usually more than one monitor — and the mouse is the thing your game is using to aim. So a fair amount of this cannot be ported; it has to be designed again. That is what this repo is: the design, plus an inventory of which parts of the Android codebase actually survive the trip.
 
-## How to Use
+The short version: about a quarter of the Kotlin is pure JVM with no Android in it at all, the dictionary and model packs are format-identical, and the two native inference engines (MNN for LLMs and OCR, slimt for offline NMT) are already cross-platform C++. Those carry over. The UI, the capture, the overlay, and the input model do not.
 
-1. [Download the latest release by clicking here](../../releases/download/v3.2.0/PlayTranslate-3.2.0.apk)
-2. On your Android, enable **Settings → Security → Install unknown apps** for your file manager or browser
-3. Open the APK and tap Install
-4. On first launch, follow the onboarding steps to grant the necessary permissions
+## Status
 
-### Won't install?
+Design stage. Nothing builds. No releases, and no timeline I am committing to.
 
-On some Android devices, **Google Play Protect** blocks sideloaded APKs and shows a vague "App not installed" or "harmful app" warning. If that happens, temporarily disable the scanner:
+**I do not plan to maintain this.** It is a fork I made to work out how the port would actually go — what survives contact with a desktop, what has to be rewritten, and where the platform differences bite. The design doc is the deliverable. If you want to take it further, take it; the license already says you can.
 
-1. Open the **Play Store**
-2. Tap your **profile icon** (top right)
-3. Tap **Play Protect**
-4. Tap the **gear icon** (top right)
-5. Turn off **Scan apps with Play Protect**
+## What carries over, and what does not
 
-Install the APK, then re-enable Play Protect afterward to keep scanning your other apps.
+| | Android original | PC port |
+|---|---|---|
+| OCR | ML Kit, plus optional Meiki / manga-ocr / PaddleOCR | **Meiki / manga-ocr / PaddleOCR only.** ML Kit has no desktop build, and it is the fallback for 22 of the 26 source languages — so the OCR floor gets rebuilt on MNN |
+| OCR models | 8 packs, 173 MB | **Same files, byte for byte** — they are already `.mnn` |
+| Dictionaries | 25 source packs, 58 target packs | **Same files, byte for byte** |
+| Language engines | Sudachi, HanLP, KOMORAN, Snowball, newmm, CAMeL, Morfologik | Same — all pure JVM |
+| Offline translation | Bergamot (slimt), plus optional MNN LLMs | Same, and easier — slimt is a desktop library first |
+| Local LLMs | Gemma 4 E2B, Qwen 3.5 2B, Hy-MT2, through MNN | Same, **plus your own local server** (Ollama, LM Studio, llama.cpp) |
+| UI | 171 files of hand-built Android Views | **Rewritten as a web app** — one build for all three platforms |
+| Overlay | A floating window you drag with your finger | **Native, per platform** — with a keyboard-first input model instead of drag |
+| Anki | AnkiDroid content provider | AnkiConnect |
+| Game audio | AudioPlaybackCapture | WASAPI loopback / ScreenCaptureKit / PipeWire |
+| TTS | Android TextToSpeech | SAPI, AVSpeechSynthesizer, speech-dispatcher, or bundled Piper |
+| Camera tool | Point your phone at the screen | Mostly pointless on a PC — but the same tracker handles a **capture card** |
 
-### Can't enable accessibility?
+## Planned platforms
 
-A few advanced features (like hotkey hold-to-preview) will prompt you to enable accessibility permissions. Some Android OEMs block sideloaded apps from receiving accessibility permissions by default, and the toggle in Settings might be grayed out or show a "Restricted setting" message. To unblock it:
+| Platform | Overlay over games | Screen capture | Global hotkeys | Game audio |
+|---|---|---|---|---|
+| Windows 10/11 | Yes | Windows.Graphics.Capture, DXGI | Raw Input, no hook needed | WASAPI loopback |
+| macOS 13+ | Yes | ScreenCaptureKit | CGEventTap (needs Accessibility permission) | ScreenCaptureKit |
+| Linux — KDE Plasma | Yes, on X11 and Wayland | XComposite / PipeWire via portal | XInput2 / portal | PipeWire monitor |
+| Linux — XFCE | Yes (X11) | XComposite | XInput2 | PulseAudio monitor |
+| Linux — GNOME (X11) | Yes | XComposite | XInput2 | PulseAudio monitor |
+| Linux — GNOME (Wayland) | **No** | PipeWire via portal | portal, and it gives no key-up | PipeWire monitor |
 
-1. Open **Settings → Apps → PlayTranslate**
-2. Tap the **⋮** menu (top right)
-3. Tap **Allow restricted settings**
-4. Authenticate when prompted
+If you are on GNOME Wayland, no ordinary app can draw over your game — GNOME does not implement `wlr-layer-shell`. The port falls back to a side panel there. Everything else still works. X11 sessions, KDE, and XFCE are unaffected.
 
-You can now turn on accessibility for PlayTranslate.
+## Planned features
 
-## Support
+### New on PC
 
-To report issues, receive support, or make requests, please join the [Discord server](https://discord.gg/DVCj6p7MUC)
+- **Hotkeys instead of gestures**: The floating icon's drag / hold / tap become rebindable global hotkeys. Mouse side buttons count as first-class bindings — games rarely take them. Hold-to-preview still works, except on Wayland, where you get a toggle instead.
+- **Tray icon**: The floating icon becomes a system tray icon. On by default, and you can turn it off. On GNOME there is no tray unless you install the AppIndicator extension, so it is never the only way in — there is always a hotkey and a main window.
+- **Web UI**: Settings, word cards, the workspace, Anki review, and history are a web app, laid out like the Android screens but built once for all three platforms. The overlay stays native, because drawing text over someone else's window frame by frame is the one thing a browser is bad at.
+- **Multi-monitor**: Each monitor keeps its own capture region and its own overlay state, the way the Android app does it per display.
+- **Capture cards**: Route a console or handheld through a capture card and it becomes just another game window. This is the one place the camera tool's planar tracker is still worth having.
+- **Local LLM servers**: Point it at Ollama, LM Studio, or llama.cpp on `127.0.0.1` and translate with a model you already have. No download, and better output than a 2B model that fits in a phone.
+- **Keyboard-first mode**: Number the detected text boxes in reading order and pick one with the keyboard, with the result spoken by TTS. No pointer involved.
+- **Region select by keyboard**: Snap to a text box, a window, or a monitor edge, then nudge with the arrow keys.
 
-You can support PlayTranslate on Ko-fi at https://ko-fi.com/playtranslate
+### Carried over from Android
 
-## Supported Languages
+- **Offline**: OCR and dictionary lookups work without an internet connection, with optional offline translation models.
+- **Word lookup**: Hover over a word for its definition. On Android you drag a lens onto it; here you just leave the pointer there.
+- **Auto Translation Mode**: Translates as dialogue changes, no key press required. The sentence-completion gate that keeps half-typed lines from being translated wrong is platform-independent, so it comes over as-is.
+- **Furigana / Pinyin mode**: Reading hints above the characters, in real time.
+- **Capture regions**: Crop to just the dialogue box, the subtitles, or any custom area.
+- **Text-to-speech**: Hear the text spoken aloud.
+- **Anki export**: Save sentences to Anki with the original text, the translation, the word list, target words, TTS, and a screenshot. Card type presets for popular decks. Works through AnkiConnect, so it works with desktop Anki.
+- **Yomitan integration**: Yomitan dictionaries import as-is, with pitch accent, frequency chips, kanji enrichment, and merged term definitions everywhere, including in Anki cards.
+- **Text History**: A record of captured sentences. Off by default.
 
-PlayTranslate translates from **26 game languages** (the text it can read off the screen) into **59 translation languages** (the language shown to you). Both tables are sorted by total worldwide speakers.
+### Gone
+
+- **The magnifier lens.** It exists because your finger covers the word you are looking at. A mouse pointer is smaller and does not cover anything.
+- **The drag-to-look-up gesture**, and the icon's hold and tap gestures with it.
+- **Pointing the camera at your screen.** Just capture the screen.
+
+## How it will install
+
+| Platform | Format | What to know |
+|---|---|---|
+| Windows | **MSI** | Per-user install, no admin needed. Unsigned builds will show a SmartScreen warning until there is a code-signing certificate |
+| macOS | **DMG** | Unsigned and un-notarized builds need a right-click → Open. Screen-recording and Accessibility permissions are tied to the signing identity, so if the signature changes on an update, you have to grant them again |
+| Linux | **deb**, **rpm**, and **Flatpak** | Flatpak is the recommended one — a single build that works on every distro. It goes through portals for screen capture and hotkeys, which is the supported way to do both on Wayland |
+
+## Planned hotkey defaults
+
+Everything is rebindable, and there is a mouse-side-button column because that is where the free real estate is.
+
+| Action | Default |
+|---|---|
+| Look up words at the pointer | `Ctrl+Alt+Q` / mouse button 4 (hold) |
+| Translate the current region | `Ctrl+Alt+W` / mouse button 5 |
+| Toggle auto-translate | `Ctrl+Alt+E` |
+| Pick a capture region | `Ctrl+Alt+R` |
+| Send the last sentence to Anki | `Ctrl+Alt+A` |
+| Speak the last sentence | `Ctrl+Alt+S` |
+| Open the result panel / workspace | `Ctrl+Alt+D` |
+| Translate the clipboard | `Ctrl+Alt+C` |
+| Hide or show the overlay | `Ctrl+Alt+H` |
+| Panic — drop every latched state and hide all overlays | `Ctrl+Alt+Shift+X` |
+
+No bare letters in the defaults. Your game is using those.
+
+## Supported languages
+
+Same set as the Android app, because the packs are the same files.
 
 ### Game languages (read from the screen)
 
@@ -161,23 +209,17 @@ PlayTranslate translates from **26 game languages** (the text it can read off th
 
 ## Optional: Online Translation Backends
 
-By default, translation uses [Lingva](https://github.com/thedaviddelta/lingva-translate) with ML Kit as an offline fallback. For higher quality translations, you can plug in an API key for any of the following under **Settings → Translation services**. Add as many as you like — each service is its own entry in the list, so you can keep several configured and reorder them to pick which one translates first:
+By default, translation runs offline. For higher quality you can plug in an API key for any of these, and add as many as you like — each service is its own entry, so you can keep several configured and reorder them to pick which one translates first:
 
-- **DeepL**: free tier at [deepl.com/en/pro#developer](https://www.deepl.com/en/pro#developer)
-- **OpenAI**: [platform.openai.com](https://platform.openai.com/api-keys) — pick a model at runtime
-- **Gemini**: [aistudio.google.com](https://aistudio.google.com/app/apikey) — pick a model at runtime
-- **DeepSeek**: [platform.deepseek.com](https://platform.deepseek.com/api_keys) — pick a model at runtime
-- **Mistral**: [console.mistral.ai](https://console.mistral.ai/api-keys) — pick a model at runtime
-- **Groq**: [console.groq.com](https://console.groq.com/keys) — pick a model at runtime
-- **OpenRouter**: [openrouter.ai](https://openrouter.ai/keys) — pick a model at runtime
-- **Claude**: [platform.claude.com](https://platform.claude.com/settings/keys) — pick a model at runtime
-- **Custom**: any other OpenAI-compatible endpoint — point it at your own base URL
+- **DeepL**, **OpenAI**, **Gemini**, **DeepSeek**, **Mistral**, **Groq**, **OpenRouter**, **Claude**, or any other OpenAI-compatible endpoint, including a local one
 
 ## Optional: Anki Flashcards
 
-Install [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and grant PlayTranslate access in Settings to export cards directly to your decks.
+Install [Anki](https://apps.ankiweb.net/) with [AnkiConnect](https://ankiweb.net/shared/info/2055492159) and the port exports cards straight to your decks. No AnkiDroid, no content provider, no permissions dance.
 
 ## Credits
+
+Everything below is the original project's list, carried over because the port reuses the same libraries, models, and linguistic data. Nothing in this fork was written by the people named here.
 
 ### Libraries and services
 
@@ -239,4 +281,14 @@ Work we reimplemented rather than linked. No source was copied verbatim.
 
 ## License
 
-[GPL 3.0](LICENSE)
+[GPL 3.0](LICENSE) — the same license as the original.
+
+PlayTranslate is GPL-3.0, so this fork is GPL-3.0 too. The copyright in the code and in all the bundled linguistic data belongs to the original project and to the upstream sources credited above, not to me.
+
+## Naming
+
+The original project's [TRADEMARK.md](TRADEMARK.md) is explicit that the GPL covers the code and **not** the PlayTranslate name, logo, or visual identity. Stating that this is a fork of PlayTranslate is fine, which is what this repo does. Anything *distributed* from here would have to ship under a different name, a different icon, and a different application id.
+
+## Maintenance
+
+Not maintained. Issues and pull requests may go unanswered, and there is no support channel — the original project's [Discord](https://discord.gg/DVCj6p7MUC) is for the Android app, not for this.
