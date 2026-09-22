@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS 应用包元数据（@APP_VERSION@）。
+
+  几个关键点：
+
+  • **屏幕录制的 TCC 授权没有对应的 usage-description 键**。macOS 不用 plist 里
+    的字符串来解释屏幕录制，而是弹一个通用系统提示。所以别去找
+    NSScreenCaptureUsageDescription —— 它不存在。麦克风/相机才有。
+
+  • **TCC 授权绑定「签名标识 + 应用路径」**，这是 macOS 分发真正的坑。
+    授权（屏幕录制、辅助功能）记在被签名的 bundle 上。如果你：
+      - 换签名证书，或
+      - 每次更新换安装路径（比如从 /tmp 装 vs /Applications）
+    那么用户每次升级都要重新授权一次。所以签名必须稳定，更新要原地替换。
+    用户想重置时：tccutil reset ScreenCapture @APP_ID@
+
+  • LSUIElement 保持 false（0）：我们有主窗口，是常规应用。
+    若想做成「只有菜单栏图标、没有 Dock 图标」，改成 <true/>。
+-->
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>@APP_NAME@</string>
+    <key>CFBundleDisplayName</key>
+    <string>@APP_NAME@</string>
+    <key>CFBundleIdentifier</key>
+    <string>@APP_ID@</string>
+    <key>CFBundleExecutable</key>
+    <string>@APP_SLUG@</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@APP_VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@APP_BUILD@</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <!-- 最低系统版本。13 是 ScreenCaptureKit 音频捕获可靠的起点。 -->
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>LSUIElement</key>
+    <false/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+
+    <!-- 游戏原声采集走 ScreenCaptureKit，但若用户改走麦克风路径，这个键必须存在 -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>@APP_NAME@ 需要访问麦克风，以便把游戏语音录进 Anki 卡片。</string>
+
+    <!-- 若要与 Anki 通过 Apple Events 交互（而非 AnkiConnect 的 HTTP），
+         这个键是必需的。走 AnkiConnect 则可以删掉。 -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>@APP_NAME@ 需要与 Anki 通信，以便导出抽认卡。</string>
+</dict>
+</plist>
