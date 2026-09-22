@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 占位图标。TRADEMARK.md 要求分发版必须与官方 PlayTranslate 图标视觉可区分，
+     所以这里从零画了一个（对话气泡 + 放大镜），没有沿用上游的贴边 1/4 圆。
+     公开分发前请替换为自己的设计。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f8f86"/>
+      <stop offset="1" stop-color="#1d6a63"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 底板 -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bg)"/>
+
+  <!-- 对话气泡 -->
+  <path d="M56 66 h144 a20 20 0 0 1 20 20 v62 a20 20 0 0 1 -20 20 h-72 l-34 28 v-28 h-38
+           a20 20 0 0 1 -20 -20 v-62 a20 20 0 0 1 20 -20 z"
+        fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- 气泡里的两行“文字” -->
+  <rect x="70" y="96" width="76" height="9" rx="4.5" fill="#ffffff" opacity="0.75"/>
+  <rect x="70" y="118" width="48" height="9" rx="4.5" fill="#ffffff" opacity="0.55"/>
+
+  <!-- 放大镜 -->
+  <circle cx="158" cy="140" r="30" fill="#1d6a63" stroke="#ffffff" stroke-width="9"/>
+  <line x1="180" y1="162" x2="204" y2="186" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="158" cy="140" r="17" fill="#7fd8cd" opacity="0.9"/>
+</svg>
