@@ -1,0 +1,61 @@
+#!/bin/sh
+# 应用启动器。打包时 @APP_SLUG@ / @APP_LIB_DIR@ 会被替换为实际值。
+#
+# 为什么要「自己找家」而不是写死路径：五种格式的安装根不一样——
+#   deb / rpm → /usr/lib/<slug>
+#   Flatpak   → /app/lib/<slug>
+#   macOS .app → <App>.app/Contents/Resources/app
+#   jpackage app-image → <image>/lib/app
+# 写死任何一个都会让另外几个找不到 jar。所以按候选列表探测。
+set -eu
+
+APP_SLUG="@APP_SLUG@"
+SELF="$(cd "$(dirname "$0")" && pwd)"
+
+# ---- 1) 定位应用目录（放 jar 与原生库） --------------------------------
+APP_HOME=""
+for cand in \
+    "@APP_LIB_DIR@" \
+    "$SELF/../lib/$APP_SLUG" \
+    "$SELF/../share/$APP_SLUG" \
+    "$SELF/../Resources/app" \
+    "$SELF"
+do
+    if [ -f "$cand/$APP_SLUG.jar" ]; then APP_HOME="$(cd "$cand" && pwd)"; break; fi
+done
+if [ -z "$APP_HOME" ]; then
+    echo "$APP_SLUG: 找不到 ${APP_SLUG}.jar（安装可能不完整）" >&2
+    exit 78   # EX_CONFIG
+fi
+
+# ---- 2) 定位 JVM：优先随包携带的运行时 --------------------------------
+JAVA=""
+for cand in \
+    "$APP_HOME/runtime/bin/java" \
+    "$SELF/../runtime/bin/java" \
+    "$SELF/../Resources/runtime/bin/java" \
+    "$APP_HOME/bin/java"
+do
+    if [ -x "$cand" ]; then JAVA="$cand"; break; fi
+done
+if [ -z "$JAVA" ]; then
+    if command -v java >/dev/null 2>&1; then
+        JAVA="java"
+    else
+        echo "$APP_SLUG: 没有可用的 Java 运行时。请安装 JRE 17+ 或使用带运行时的安装包。" >&2
+        exit 69   # EX_UNAVAILABLE
+    fi
+fi
+
+# ---- 3) 启动 ----------------------------------------------------------
+# -Djava.library.path：JNI 原生层（MNN / slimt）在同目录
+# --enable-native-access：JDK 21+ 对 FFM/JNI 的限制，避免告警刷屏
+exec "$JAVA" \
+    -Djava.library.path="$APP_HOME" \
+    -Dapp.slug="$APP_SLUG" \
+    -Dapp.home="$APP_HOME" \
+    -XX:+IgnoreUnrecognizedVMOptions \
+    --enable-native-access=ALL-UNNAMED \
+    ${APP_JAVA_OPTS:-} \
+    -jar "$APP_HOME/$APP_SLUG.jar" \
+    "$@"
