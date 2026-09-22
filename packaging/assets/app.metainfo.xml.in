@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream 元数据：软件中心（GNOME Software / KDE Discover）靠它展示。
+     校验：appstreamcli validate --no-net app.metainfo.xml -->
+<component type="desktop-application">
+  <id>@APP_ID@</id>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>@APP_LICENSE@</project_license>
+
+  <name>@APP_NAME@</name>
+  <summary>@APP_SUMMARY@</summary>
+
+  <description>
+    <p>@APP_DESC@</p>
+    <p>读屏 → OCR → 分词查词 → 翻译 → 把译文叠回原位置。面向语言学习者（逐词查词、振假名/拼音、音调与词频、导出 Anki 卡片、导入 Yomitan 词典）和只想玩游戏的玩家（一键翻译、自动翻译、离线可用、全局快捷键）。</p>
+    <p>这是 PlayTranslate 的<em>非官方</em> PC 移植分支。源码与设计来自上游项目；本分支不是官方版本，也未获上游背书。</p>
+  </description>
+
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
+
+  <categories>
+    <category>Utility</category>
+    <category>Education</category>
+  </categories>
+
+  <keywords>
+    <keyword>translate</keyword>
+    <keyword>OCR</keyword>
+    <keyword>game</keyword>
+    <keyword>dictionary</keyword>
+    <keyword>Japanese</keyword>
+  </keywords>
+
+  <url type="homepage">@APP_HOMEPAGE@</url>
+  <url type="bugtracker">@APP_HOMEPAGE@/issues</url>
+
+  <provides>
+    <binary>@APP_SLUG@</binary>
+  </provides>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="@APP_VERSION@" date="@APP_DATE@">
+      <description>
+        <p>见发行说明。</p>
+      </description>
+    </release>
+  </releases>
+</component>
