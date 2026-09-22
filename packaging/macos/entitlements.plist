@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hardened Runtime 授权（签名时用 --entitlements）。
+
+  这些不是可选项：开了 hardened runtime（公证的前提）之后，
+  JVM 与 JNI 会**直接崩**，除非把下面几项放开。
+
+  注意：这里都是「强化运行时例外」，**不是** App Sandbox 授权。
+  我们不打 Mac App Store，所以不开 app-sandbox —— 开了之后截屏、全局热键、
+  读用户任意目录都会变得极其麻烦，而沙箱对本案没有安全收益。
+-->
+<plist version="1.0">
+<dict>
+    <!-- JVM 必然要 JIT 编译字节码。不给这项，HotSpot 起不来。 -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- 部分 JVM 路径（以及 JIT 生成的代码页）需要可写可执行内存。 -->
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+
+    <!-- 加载 JNI 原生库（libslimt / libMNN）时的签名校验豁免。
+         若这些 .dylib 是用同一个 Team ID 签的，理论上可以不放开；
+         但本项目的原生库由 CMake 独立构建、可能来自第三方预编译包，
+         放开这一项能避免「库加载被拒」这类难查的崩溃。 -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+
+    <!-- 麦克风（仅当走录音路径） -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+
+    <!-- 若通过 Apple Events 与 Anki 交互（AnkiConnect 的 HTTP 不需要） -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+
+    <!-- 允许通过环境变量注入动态库（调试用；发布版可删） -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+</dict>
+</plist>
