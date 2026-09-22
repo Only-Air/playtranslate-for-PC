@@ -1,0 +1,59 @@
+# app.spec.in —— 由 linux/build-rpm.sh 渲染成 .spec 后交给 rpmbuild。
+#
+# 两个 JVM 应用必带的开关：
+#   %global debug_package %{nil}   JVM 程序没有 ELF 调试信息，不禁用会构建失败/报空 debuginfo
+#   AutoReqProv: no                否则 rpm 会去扫 jar 内部的 class 引用，生成一堆莫名其妙的依赖
+%global debug_package %{nil}
+%global _build_id_links none
+%global applibdir /usr/lib/%{name}
+
+Name:           @APP_SLUG@
+Version:        @APP_VERSION@
+Release:        1%{?dist}
+Summary:        @APP_SUMMARY@
+
+# 现代 rpm（Fedora 38+ / openSUSE）要求 SPDX 标识。老发行版用 GPLv3+。
+License:        GPL-3.0-or-later
+URL:            @APP_HOMEPAGE@
+BuildArch:      @ARCH@
+AutoReqProv:    no
+
+%description
+@APP_DESC@
+
+这是 PlayTranslate 的非官方 PC 移植分支。本包不是官方版本，也未获上游背书。
+
+%prep
+# 不做准备。载荷由 PC 端构建预先生成，通过 --define "_payload <目录>" 传入。
+
+%build
+# 纯 JVM 应用，无需编译步骤。
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}
+cp -a %{_payload}/. %{buildroot}/
+
+%files
+%{_bindir}/@APP_SLUG@
+%{applibdir}
+/usr/share/applications/@APP_ID@.desktop
+/usr/share/metainfo/@APP_ID@.metainfo.xml
+/usr/share/icons/hicolor/scalable/apps/@APP_ID@.svg
+
+%post
+if [ -x /usr/bin/update-desktop-database ]; then
+    /usr/bin/update-desktop-database -q /usr/share/applications || :
+fi
+if [ -x /usr/bin/gtk-update-icon-cache ]; then
+    /usr/bin/gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || :
+fi
+
+%postun
+if [ -x /usr/bin/update-desktop-database ]; then
+    /usr/bin/update-desktop-database -q /usr/share/applications || :
+fi
+
+%changelog
+* @APP_DATE@ @APP_MAINTAINER@ <@APP_MAINTAINER_EMAIL@> - @APP_VERSION@-1
+- 见发行说明。
