@@ -1,0 +1,34 @@
+{
+ "note": "Generated from app/src/main/res/values*/strings.xml by pc/tools/gen_resources.py. Do not edit by hand.",
+ "base": "en",
+ "locales": [
+  "ar",
+  "de",
+  "en",
+  "es",
+  "fr",
+  "ja",
+  "ko",
+  "pt-BR",
+  "ru",
+  "th",
+  "tr",
+  "vi",
+  "zh-CN"
+ ],
+ "baseKeys": 1006,
+ "translatedKeys": {
+  "ar": 966,
+  "de": 956,
+  "es": 959,
+  "fr": 956,
+  "ja": 956,
+  "ko": 962,
+  "pt-BR": 956,
+  "ru": 959,
+  "th": 961,
+  "tr": 956,
+  "vi": 960,
+  "zh-CN": 961
+ }
+}
