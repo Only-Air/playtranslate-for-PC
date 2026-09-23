@@ -2,9 +2,9 @@
 
 A real-time screen translation app for PC, built for both language learners and people who just want to play. Windows, macOS, and Linux.
 
-**This is a fork of [PlayTranslate](https://github.com/dominostars/playtranslate), it is at the design stage, and it is not being maintained.** What is here is the porting design and the packaging setup for all five release formats. The PC application itself is not written yet — if you want a working app today, get [the Android original](https://github.com/dominostars/playtranslate).
+**This is a fork of [PlayTranslate](https://github.com/dominostars/playtranslate), it is at the design stage, and it is not being maintained.** What is here is the porting design, the packaging setup for all five release formats, and the first part of the port itself. There is still no working app — if you want one today, get [the Android original](https://github.com/dominostars/playtranslate).
 
-**[Read the porting design →](PORTING.md)** · **[Packaging →](packaging/README.md)**
+**[Read the porting design →](PORTING.md)** · **[Packaging →](packaging/README.md)** · **[The port so far →](pc/README.md)** · **[What is missing →](pc/GAP_REPORT.md)**
 
 ## What this is
 
@@ -16,9 +16,12 @@ The short version: about a quarter of the Kotlin is pure JVM with no Android in 
 
 ## Status
 
-Design stage. The Android source is here untouched; the PC port is designed but not written, and I am not committing to a timeline.
+Design stage, with the first part of the port now written. The Android source is here untouched; the PC port is designed, and the pieces that do not depend on a platform API exist — see [`pc/`](pc/README.md):
 
-Packaging, though, is set up and testable today: Windows **MSI**, macOS **DMG**, and Linux **deb / rpm / Flatpak**, plus the icon generator and the release manifest. See [`packaging/README.md`](packaging/README.md) for the build commands and [`packaging/RELEASING.md`](packaging/RELEASING.md) for how to cut a release. None of it produces a usable package until there is an application to put in one.
+- **Written and verified**: the action registry and hotkey decision machine (upstream's shadow-window logic, ported), the translation waterfall with an explicit "no offline model" answer instead of Android's always-succeeds ML Kit rung, the loopback HTTP + WebSocket bridge with its 14 security self-checks passing, the web panel (one route per upstream screen, 13 locales), the Linux capability probe, and the payload that the packaging scripts consume.
+- **Not written**: every platform backend (capture, overlay, hotkeys, tray, audio), the native overlay layer, the dictionary/OCR stack, and the webview host. [`pc/GAP_REPORT.md`](pc/GAP_REPORT.md) lists the gaps and the evidence for each claim, and corrects seven numbers in `PORTING.md` against measurement.
+
+Packaging is set up and testable today: Windows **MSI**, macOS **DMG**, and Linux **deb / rpm / Flatpak**, plus the icon generator and the release manifest. See [`packaging/README.md`](packaging/README.md) for the build commands and [`packaging/RELEASING.md`](packaging/RELEASING.md) for how to cut a release. The Linux **deb** path has now been exercised end to end against a real payload; the other four still have not been built here.
 
 **I do not plan to maintain this.** It is a fork I made to work out how the port would actually go — what survives contact with a desktop, what has to be rewritten, and where the platform differences bite. The design doc is the deliverable. If you want to take it further, take it; the license already says you can.
 
@@ -26,7 +29,7 @@ Packaging, though, is set up and testable today: Windows **MSI**, macOS **DMG**,
 
 | | Android original | PC port |
 |---|---|---|
-| OCR | ML Kit, plus optional Meiki / manga-ocr / PaddleOCR | **Meiki / manga-ocr / PaddleOCR only.** ML Kit has no desktop build, and it is the fallback for 22 of the 26 source languages — so the OCR floor gets rebuilt on MNN |
+| OCR | ML Kit, plus optional Meiki / manga-ocr / PaddleOCR | **Meiki / manga-ocr / PaddleOCR only.** ML Kit has no desktop build, and it is the fallback for 23 of the 26 source languages — so the OCR floor gets rebuilt on MNN |
 | OCR models | 8 packs, 173 MB | **Same files, byte for byte** — they are already `.mnn` |
 | Dictionaries | 25 source packs, 58 target packs | **Same files, byte for byte** |
 | Language engines | Sudachi, HanLP, KOMORAN, Snowball, newmm, CAMeL, Morfologik | Same — all pure JVM |
@@ -58,7 +61,7 @@ If you are on GNOME Wayland, no ordinary app can draw over your game — GNOME d
 
 - **Hotkeys instead of gestures**: The floating icon's drag / hold / tap become rebindable global hotkeys. Mouse side buttons count as first-class bindings — games rarely take them. Hold-to-preview still works, except on Wayland, where you get a toggle instead.
 - **Tray icon**: The floating icon becomes a system tray icon. On by default, and you can turn it off. On GNOME there is no tray unless you install the AppIndicator extension, so it is never the only way in — there is always a hotkey and a main window.
-- **Web UI**: Settings, word cards, the workspace, Anki review, and history are a web app, laid out like the Android screens but built once for all three platforms. The overlay stays native, because drawing text over someone else's window frame by frame is the one thing a browser is bad at.
+- **Web UI**: Settings, word cards, the workspace, Anki review, and history are a web app, laid out like the Android screens but built once for all three platforms. Its wording comes from the Android resources — 1006 base strings already translated into 12 locales — converted mechanically rather than re-authored. The overlay stays native, because drawing text over someone else's window frame by frame is the one thing a browser is bad at.
 - **Multi-monitor**: Each monitor keeps its own capture region and its own overlay state, the way the Android app does it per display.
 - **Capture cards**: Route a console or handheld through a capture card and it becomes just another game window. This is the one place the camera tool's planar tracker is still worth having.
 - **Local LLM servers**: Point it at Ollama, LM Studio, or llama.cpp on `127.0.0.1` and translate with a model you already have. No download, and better output than a 2B model that fits in a phone.
