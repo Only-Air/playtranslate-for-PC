@@ -1,0 +1,353 @@
+/* ScreenGloss panel — the design tokens, as CSS custom properties.
+ *
+ * PORTING.md §7.2.4 says of the appearance screen:
+ *
+ *     `ThemeTokens` → CSS 自定义属性
+ *
+ * This is that translation, and it is a *port* rather than a re-pick: every
+ * value below is copied out of `app/src/main/res/values/colors.xml` and
+ * `styles.xml`, and the property names are the attribute names lowercased and
+ * dashed, so `?attr/ptTextMuted` becomes `--pt-text-muted`. Anybody who has read
+ * the Android theme can read this file, and a colour changed upstream can be
+ * found here by name instead of by eye.
+ *
+ *   Android attribute          this file
+ *   ------------------------   -------------------
+ *   ?attr/ptBg                 --pt-bg
+ *   ?attr/ptSurface            --pt-surface
+ *   ?attr/ptCard               --pt-card
+ *   ?attr/ptElevated           --pt-elevated
+ *   ?attr/ptDivider            --pt-divider
+ *   ?attr/ptOutline            --pt-outline
+ *   ?attr/ptText               --pt-text
+ *   ?attr/ptTextMuted          --pt-text-muted
+ *   ?attr/ptTextHint           --pt-text-hint
+ *   ?attr/ptTextTranslation    --pt-text-translation
+ *   ?attr/ptTextLink           --pt-accent
+ *   ?attr/ptAccent             --pt-accent
+ *   ?attr/ptAccentTint         --pt-accent-tint
+ *   ?attr/ptAccentOn           --pt-accent-on
+ *   ?attr/ptDanger             --pt-danger
+ *   ?attr/ptWarning            --pt-warning
+ *   ?attr/ptRadius (14dp)      --pt-radius
+ *
+ * `pt_dark_text_dim` / `pt_light_text_dim` exist in colors.xml but have no
+ * `ThemeTokens` accessor, so they are carried here as `--pt-text-dim` with a
+ * note rather than silently dropped — they are used by three upstream views
+ * (the disabled label states) and the panel will need them.
+ *
+ * The `--pt-*` names are deliberately not namespaced further. There is one
+ * theme in this application and it is the one upstream shipped; pretending
+ * otherwise by prefixing with the app name would only make the mapping above
+ * harder to check.
+ */
+
+:root {
+  /* ─── Surfaces ────────────────────────────────────────────── */
+  --pt-bg: #f7f8f7;
+  --pt-surface: #eceeec;
+  --pt-card: #ffffff;
+  --pt-elevated: #ffffff;
+  --pt-divider: #12000000;
+  --pt-outline: #1a000000;
+
+  /* ─── Text ────────────────────────────────────────────────── */
+  --pt-text: #14171a;
+  --pt-text-muted: #5a6168;
+  --pt-text-hint: #8a9199;
+  --pt-text-dim: #c8ccd0;
+  --pt-text-translation: #9e5a00;
+
+  /* ─── Accent ──────────────────────────────────────────────── */
+  --pt-accent: #4dd0c2;
+  --pt-accent-tint: #1f4dd0c2;
+  --pt-accent-on: #ffffff;
+
+  /* ─── Status ──────────────────────────────────────────────── */
+  --pt-danger: #c8383d;
+  --pt-warning: #a67a11;
+
+  /* ─── Dimensions ──────────────────────────────────────────── */
+  --pt-radius: 14px;
+  --pt-space-1: 4px;
+  --pt-space-2: 8px;
+  --pt-space-3: 12px;
+  --pt-space-4: 16px;
+  --pt-space-5: 24px;
+  --pt-space-6: 32px;
+
+  --pt-font: -apple-system, "Segoe UI", "Noto Sans CJK JP", "Noto Sans", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --pt-font-mono: "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+
+  --pt-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* The dark palette, same names. Applied when the OS asks for it OR when the
+ * user picks Dark in /settings/appearance (which sets data-theme). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pt-bg: #0b0d0e;
+    --pt-surface: #141719;
+    --pt-card: #1c1f22;
+    --pt-elevated: #24272b;
+    --pt-divider: #12ffffff;
+    --pt-outline: #1fffffff;
+    --pt-text: #eceff1;
+    --pt-text-muted: #9aa1a8;
+    --pt-text-hint: #5f6770;
+    --pt-text-dim: #4a5158;
+    --pt-text-translation: #e8c07a;
+    --pt-accent-on: #0b1412;
+    --pt-danger: #e05d5d;
+    --pt-warning: #d4a84a;
+    --pt-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --pt-bg: #0b0d0e;
+  --pt-surface: #141719;
+  --pt-card: #1c1f22;
+  --pt-elevated: #24272b;
+  --pt-divider: #12ffffff;
+  --pt-outline: #1fffffff;
+  --pt-text: #eceff1;
+  --pt-text-muted: #9aa1a8;
+  --pt-text-hint: #5f6770;
+  --pt-text-dim: #4a5158;
+  --pt-text-translation: #e8c07a;
+  --pt-accent-on: #0b1412;
+  --pt-danger: #e05d5d;
+  --pt-warning: #d4a84a;
+  --pt-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--pt-bg);
+  color: var(--pt-text);
+  font-family: var(--pt-font);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+#app { display: flex; min-height: 100%; }
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+
+nav#sidebar {
+  width: 232px;
+  flex: 0 0 232px;
+  background: var(--pt-surface);
+  border-right: 1px solid var(--pt-divider);
+  padding: var(--pt-space-4) var(--pt-space-3);
+  overflow-y: auto;
+}
+
+nav#sidebar .brand {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  padding: 0 var(--pt-space-2) var(--pt-space-4);
+  display: block;
+  color: var(--pt-text);
+  text-decoration: none;
+}
+
+nav#sidebar .brand small {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--pt-text-hint);
+}
+
+nav#sidebar a {
+  display: block;
+  padding: 6px var(--pt-space-2);
+  border-radius: 9px;
+  color: var(--pt-text-muted);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+nav#sidebar a:hover { background: var(--pt-elevated); color: var(--pt-text); }
+
+nav#sidebar a[aria-current="page"] {
+  background: var(--pt-accent-tint);
+  color: var(--pt-text);
+  font-weight: 500;
+}
+
+nav#sidebar h3 {
+  margin: var(--pt-space-4) var(--pt-space-2) var(--pt-space-1);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--pt-text-hint);
+  font-weight: 600;
+}
+
+main {
+  flex: 1 1 auto;
+  padding: var(--pt-space-5) var(--pt-space-6);
+  max-width: 980px;
+  overflow-y: auto;
+}
+
+h1 { font-size: 21px; margin: 0 0 var(--pt-space-1); font-weight: 600; }
+h2 { font-size: 15px; margin: var(--pt-space-5) 0 var(--pt-space-2); font-weight: 600; }
+
+p.lede { color: var(--pt-text-muted); margin: 0 0 var(--pt-space-4); max-width: 68ch; }
+
+/* Each page states where it comes from. §7.2.4's table is the source, and the
+ * panel shows it rather than hiding it, because the port's whole claim is
+ * "one route per upstream screen". */
+p.provenance {
+  font-size: 11.5px;
+  color: var(--pt-text-hint);
+  border-left: 2px solid var(--pt-outline);
+  padding: var(--pt-space-1) 0 var(--pt-space-1) var(--pt-space-3);
+  margin: 0 0 var(--pt-space-4);
+  font-family: var(--pt-font-mono);
+}
+
+/* ── Cards, rows, tables ────────────────────────────────────────────────── */
+
+.card {
+  background: var(--pt-card);
+  border: 1px solid var(--pt-outline);
+  border-radius: var(--pt-radius);
+  padding: var(--pt-space-4);
+  margin-bottom: var(--pt-space-3);
+  box-shadow: var(--pt-shadow);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--pt-space-3);
+  padding: var(--pt-space-2) 0;
+  border-bottom: 1px solid var(--pt-divider);
+}
+.row:last-child { border-bottom: none; }
+.row .label { flex: 1 1 auto; }
+.row .value { color: var(--pt-text-muted); font-family: var(--pt-font-mono); font-size: 12px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--pt-divider); vertical-align: top; }
+th { color: var(--pt-text-hint); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+td.mono { font-family: var(--pt-font-mono); }
+
+/* ── Chips ──────────────────────────────────────────────────────────────── */
+
+.chip {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid var(--pt-outline);
+  color: var(--pt-text-muted);
+  white-space: nowrap;
+}
+.chip.yes { color: var(--pt-text); border-color: var(--pt-accent); background: var(--pt-accent-tint); }
+.chip.degraded { color: var(--pt-warning); border-color: var(--pt-warning); }
+.chip.no { color: var(--pt-danger); border-color: var(--pt-danger); }
+.chip.blocking { color: var(--pt-accent-on); background: var(--pt-danger); border-color: var(--pt-danger); }
+.chip.advisory { color: var(--pt-accent-on); background: var(--pt-warning); border-color: var(--pt-warning); }
+
+kbd {
+  font-family: var(--pt-font-mono);
+  font-size: 11.5px;
+  background: var(--pt-elevated);
+  border: 1px solid var(--pt-outline);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 6px;
+  color: var(--pt-text);
+}
+
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+
+label.field { display: block; margin-bottom: var(--pt-space-3); }
+label.field span { display: block; font-size: 12px; color: var(--pt-text-muted); margin-bottom: var(--pt-space-1); }
+input[type="text"], input[type="password"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--pt-elevated);
+  border: 1px solid var(--pt-outline);
+  border-radius: 9px;
+  color: var(--pt-text);
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+}
+textarea { font-family: var(--pt-font-mono); font-size: 12.5px; min-height: 140px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--pt-accent); outline-offset: -1px; }
+
+button {
+  background: var(--pt-accent);
+  color: var(--pt-accent-on);
+  border: none;
+  border-radius: 9px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+button.secondary { background: transparent; color: var(--pt-text); border: 1px solid var(--pt-outline); }
+button.danger { background: var(--pt-danger); color: #fff; }
+button:disabled { opacity: 0.5; cursor: default; }
+
+.switch { display: flex; align-items: center; gap: var(--pt-space-2); margin-bottom: var(--pt-space-2); }
+.switch input { accent-color: var(--pt-accent); width: 16px; height: 16px; }
+
+/* ── Word card ──────────────────────────────────────────────────────────── */
+
+.pt-headword { font-size: 26px; font-weight: 600; }
+.pt-reading { color: var(--pt-text-muted); margin-left: var(--pt-space-3); font-size: 13px; }
+.pt-card__head { display: flex; align-items: baseline; margin-bottom: var(--pt-space-2); }
+.pt-note { color: var(--pt-text-muted); font-size: 12.5px; }
+.pt-sentence__source { font-size: 16px; }
+.pt-sentence__translation { color: var(--pt-text-translation); }
+
+/* ── Status strip ───────────────────────────────────────────────────────── */
+
+#status {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 232px;
+  background: var(--pt-surface);
+  border-top: 1px solid var(--pt-divider);
+  padding: 5px var(--pt-space-6);
+  font-size: 11.5px;
+  color: var(--pt-text-hint);
+  display: flex;
+  gap: var(--pt-space-4);
+  font-family: var(--pt-font-mono);
+}
+#status .ok { color: var(--pt-accent); }
+
+.warn-banner {
+  background: var(--pt-accent-tint);
+  border: 1px solid var(--pt-outline);
+  border-left: 3px solid var(--pt-warning);
+  border-radius: 9px;
+  padding: var(--pt-space-3);
+  margin-bottom: var(--pt-space-4);
+  font-size: 12.5px;
+}
+
+.not-implemented {
+  border: 1px dashed var(--pt-outline);
+  border-radius: var(--pt-radius);
+  padding: var(--pt-space-4);
+  color: var(--pt-text-muted);
+  font-size: 12.5px;
+}
+.not-implemented strong { color: var(--pt-text); }
