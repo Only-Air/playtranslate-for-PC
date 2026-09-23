@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  ScreenGloss panel — the app shell.
+
+  This file is deliberately almost empty. PORTING.md §7.2.1 draws the split line
+  as "叠字层原生，面板层 Web", and §7.2.4 gives the panel one route per upstream
+  screen; everything that is *content* lives in app.js, keyed by route, so the
+  route table can be read in one place and checked against §7.2.4 line by line.
+
+  It is also almost empty because of §7.2.2's constraint: the core has to stay
+  Kotlin/JVM, so the host is JCEF/KCEF (JVM-embedded Chromium). Nothing here may
+  depend on a feature that only one of the three webviews has — no import maps,
+  no top-level await, no `:has()` in a load-bearing selector.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ScreenGloss</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app">
+    <nav id="sidebar" aria-label="Sections"></nav>
+    <main id="view" role="main" tabindex="-1"></main>
+  </div>
+  <div id="status" role="status" aria-live="polite"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
